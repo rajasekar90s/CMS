@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\User;
 use Validator;
+use Illuminate\Http\Request;
+use App\Http\Requests;  
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
@@ -37,7 +40,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware($this->guestMiddleware(), ['except' => 'logout']);
+       
     }
 
     /**
@@ -68,5 +71,32 @@ class AuthController extends Controller
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
+    }
+    public function postLogin(Request $request)
+    {  
+        
+            $this->validate($request, [
+            'email'      => 'required|email',
+            'password'   => 'required|min:4',
+        ]);
+
+        if (auth()->attempt([
+            'email'    => $request->input('email'), 
+            'password' => $request->input('password')
+        ])) {
+
+
+            return redirect(route('Admin-control'))->with(['message' => 'User Logged in successfully!']);
+        }
+
+        return back()->withInput()->with(['message' => 'Unable to login. Please try again!']);
+    }
+
+    public function Logout()
+    {
+
+        auth()->logout();//This function will do session destroy and redirect to another page
+
+        return redirect('Admin');
     }
 }
